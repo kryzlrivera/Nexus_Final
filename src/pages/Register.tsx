@@ -10,7 +10,7 @@ export default function Register() {
   const { register } = useData();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !name.trim()) {
       setError('All fields are required');
@@ -22,7 +22,7 @@ export default function Register() {
       return;
     }
 
-    const success = register(username.trim(), name.trim());
+    const success = await register(username.trim(), name.trim());
     if (success) {
       navigate('/');
     } else {

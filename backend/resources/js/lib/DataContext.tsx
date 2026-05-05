@@ -6,8 +6,8 @@ export interface User {
   name: string;
   avatar: string;
   bio: string;
-  friends: string[]; // array of usernames
-  savedPosts: string[]; // array of post IDs
+  friends: string[];
+  savedPosts: string[];
 }
 
 export interface Comment {
@@ -23,7 +23,7 @@ export interface Post {
   content: string;
   photoUrl?: string;
   timestamp: string;
-  likes: string[]; // array of usernames who liked it
+  likes: string[];
   comments: Comment[];
 }
 
@@ -56,6 +56,38 @@ interface DataContextType {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api';
+
+function normalizeComment(comment: any): Comment {
+  return {
+    id: String(comment.id),
+    authorUsername: comment.author?.username ?? comment.authorUsername ?? comment.user?.username ?? '',
+    content: comment.content,
+    timestamp: comment.created_at ?? comment.timestamp ?? '',
+  };
+}
+
+function normalizePost(post: any): Post {
+  return {
+    id: String(post.id),
+    authorUsername: post.author?.username ?? post.authorUsername ?? '',
+    content: post.content,
+    photoUrl: post.photo_url ?? post.photoUrl ?? undefined,
+    timestamp: post.created_at ?? post.timestamp ?? '',
+    likes: (post.likes ?? []).map((user: any) => user?.username ?? user),
+    comments: (post.comments ?? []).map((comment: any) => normalizeComment(comment)),
+  };
+}
+
+function normalizeStory(story: any): Story {
+  return {
+    id: String(story.id),
+    authorUsername: story.author?.username ?? story.authorUsername ?? '',
+    type: story.type,
+    content: story.content ?? undefined,
+    photoUrl: story.photo_url ?? story.photoUrl ?? undefined,
+    timestamp: story.created_at ?? story.timestamp ?? '',
+  };
+}
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -112,9 +144,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         apiRequest('/users'),
       ]);
 
-      setPosts(postsData);
-      setStories(storiesData);
-      setUsers(usersData.map((user: any) => ({ ...user, friends: user.friends ?? [], savedPosts: user.savedPosts ?? [] })));
+      setPosts((postsData ?? []).map((post: any) => normalizePost(post)));
+      setStories((storiesData ?? []).map((story: any) => normalizeStory(story)));
+      setUsers((usersData ?? []).map((user: any) => ({ ...user, friends: user.friends ?? [], savedPosts: user.savedPosts ?? [] })));
     } catch (error) {
       console.warn('Unable to load backend data:', error);
     }
@@ -245,12 +277,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      currentUser, users, posts, stories,
-      login, register, logout,
-      createPost, toggleLike,
-      addFriend, removeFriend,
-      getUserByUsername, updateProfile, createStory,
-      addComment, toggleSavePost
+      currentUser,
+      users,
+      posts,
+      stories,
+      login,
+      register,
+      logout,
+      createPost,
+      toggleLike,
+      addFriend,
+      removeFriend,
+      getUserByUsername,
+      updateProfile,
+      createStory,
+      addComment,
+      toggleSavePost,
     }}>
       {children}
     </DataContext.Provider>

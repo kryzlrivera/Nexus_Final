@@ -15,7 +15,7 @@ export default function Login() {
       setError('Username is required');
       return;
     }
-    
+
     const success = await login(username.trim());
     if (success) {
       navigate('/');

@@ -1,26 +1,32 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useData } from '../lib/DataContext';
-import { LogIn } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const { login } = useData();
+  const { register } = useData();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setError('Username is required');
+    if (!username.trim() || !name.trim()) {
+      setError('All fields are required');
       return;
     }
-    
-    const success = await login(username.trim());
+
+    if (username.length < 3) {
+      setError('Username must be at least 3 characters');
+      return;
+    }
+
+    const success = await register(username.trim(), name.trim());
     if (success) {
       navigate('/');
     } else {
-      setError('User not found. Try "demo" or "john_doe"');
+      setError('Username already exists');
     }
   };
 
@@ -29,9 +35,9 @@ export default function Login() {
       <div className="card" style={{ padding: '2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--primary)' }}>
-            Welcome Back to Nexus
+            Join Nexus
           </h1>
-          <p style={{ color: 'var(--text-muted)' }}>Enter your username to log in</p>
+          <p style={{ color: 'var(--text-muted)' }}>Create your account to start posting</p>
         </div>
 
         {error && (
@@ -42,6 +48,19 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
+            <label htmlFor="name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>
+              Full Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Jane Doe"
+            />
+          </div>
+
+          <div>
             <label htmlFor="username" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>
               Username
             </label>
@@ -49,19 +68,19 @@ export default function Login() {
               id="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. demo"
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+              placeholder="e.g. jane_doe"
             />
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-            <LogIn size={20} />
-            Log In
+            <UserPlus size={20} />
+            Create Account
           </button>
         </form>
 
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 500 }}>Sign up</Link>
+          Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 500 }}>Log in</Link>
         </div>
       </div>
     </div>
