@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, PlusSquare, Heart, User } from 'lucide-react';
+import { Home, Search, PlusSquare, MessageCircle, User } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 
 export default function BottomNav() {
@@ -16,21 +16,18 @@ export default function BottomNav() {
 
   return (
     <nav className="bottom-nav">
-      <Link to="/" className={`nav-item ${isActive('/') ? 'active' : ''}`}>
-        <Home size={24} strokeWidth={isActive('/') ? 2.5 : 2} />
+      <Link to="/" className={`nav-icon ${location.pathname === '/' ? 'active' : ''}`}>
+        <Home size={24} />
       </Link>
-      
-      <button className="nav-item">
+      <Link to="/search" className={`nav-icon ${location.pathname === '/search' ? 'active' : ''}`}>
         <Search size={24} />
-      </button>
-
-      <button className="nav-item">
+      </Link>
+      <button className="nav-icon">
         <PlusSquare size={24} />
       </button>
-
-      <button className="nav-item">
-        <Heart size={24} />
-      </button>
+      <Link to="/messages" className={`nav-icon ${location.pathname.startsWith('/messages') ? 'active' : ''}`}>
+        <MessageCircle size={24} />
+      </Link>
 
       <Link to={`/profile/${currentUser.username}`} className={`nav-item ${isActive('/profile') ? 'active' : ''}`}>
         <User size={24} strokeWidth={isActive('/profile') ? 2.5 : 2} />

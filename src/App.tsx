@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import Messages from './pages/Messages';
 import './index.css';
 
 // Protected Route Component
@@ -39,6 +40,22 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/messages" 
+          element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/messages/:username" 
+          element={
+            <ProtectedRoute>
+              <Messages />
             </ProtectedRoute>
           } 
         />

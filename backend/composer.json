@@ -1,5 +1,5 @@
 {
-  "name": "project-nexus-backend",
+  "name": "nexus/backend",
   "type": "project",
   "description": "Laravel backend for the Nexus social app",
   "require": {

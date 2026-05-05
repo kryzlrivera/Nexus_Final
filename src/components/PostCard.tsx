@@ -59,8 +59,14 @@ export default function PostCard({ post }: PostCardProps) {
         </button>
       </div>
 
-      {/* Post Image (Full Width) */}
-      {post.photoUrl ? (
+      {/* Post Media (Full Width) */}
+      {post.videoUrl ? (
+        <video 
+          src={post.videoUrl} 
+          controls 
+          style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'contain', display: 'block', backgroundColor: 'black' }}
+        />
+      ) : post.photoUrl ? (
         <img 
           src={post.photoUrl} 
           alt="Post content" 
@@ -104,9 +110,9 @@ export default function PostCard({ post }: PostCardProps) {
           {post.likes.length} likes
         </div>
         
-        {post.photoUrl && post.content && (
+        {(post.photoUrl || post.videoUrl) && post.content && (
           <div style={{ fontSize: '0.9rem' }}>
-            <span style={{ fontWeight: 600, marginRight: '0.5rem' }}>{author.username}</span>
+            <Link to={`/profile/${author.username}`} style={{ fontWeight: 600, marginRight: '0.5rem', textDecoration: 'none', color: 'inherit' }}>{author.username}</Link>
             <span>{post.content}</span>
           </div>
         )}
@@ -121,7 +127,7 @@ export default function PostCard({ post }: PostCardProps) {
                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.5rem' }}>
                  {post.comments?.map(comment => (
                    <div key={comment.id} style={{ fontSize: '0.85rem' }}>
-                     <span style={{ fontWeight: 600, marginRight: '0.5rem' }}>{comment.authorUsername}</span>
+                     <Link to={`/profile/${comment.authorUsername}`} style={{ fontWeight: 600, marginRight: '0.5rem', textDecoration: 'none', color: 'inherit' }}>{comment.authorUsername}</Link>
                      <span>{comment.content}</span>
                    </div>
                  ))}

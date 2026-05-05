@@ -8,6 +8,7 @@ export default function Profile() {
   const { username } = useParams<{ username: string }>();
   const { currentUser, getUserByUsername, posts, addFriend, removeFriend } = useData();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'grid' | 'video'>('grid');
 
   if (!username) return <div style={{ padding: '2rem', textAlign: 'center' }}>User not found</div>;
 
@@ -21,7 +22,11 @@ export default function Profile() {
     );
   }
 
-  const userPosts = posts.filter(p => p.authorUsername === username);
+  const allUserPosts = posts.filter(p => p.authorUsername === username);
+  const userPosts = activeTab === 'video' 
+    ? allUserPosts.filter(p => !!p.videoUrl) 
+    : allUserPosts;
+    
   const isSelf = currentUser?.username === username;
   const isFriend = currentUser?.friends.includes(username);
 
@@ -92,7 +97,7 @@ export default function Profile() {
               ) : (
                <button onClick={() => addFriend(username)} className="btn btn-primary" style={{ flex: 1, padding: '0.4rem', fontWeight: 600 }}>Follow</button>
               )}
-              <button className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-main)', padding: '0.4rem', fontWeight: 600 }}>Message</button>
+              <Link to={`/messages/${username}`} className="btn" style={{ flex: 1, backgroundColor: 'var(--border-color)', color: 'var(--text-main)', padding: '0.4rem', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}>Message</Link>
             </>
           )}
         </div>
@@ -112,10 +117,16 @@ export default function Profile() {
 
       {/* Grid View Tabs */}
       <div style={{ display: 'flex', borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem', marginBottom: '1px' }}>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0.5rem', borderTop: '1px solid var(--text-main)', color: 'var(--text-main)' }}>
+        <div 
+          onClick={() => setActiveTab('grid')}
+          style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0.5rem', borderTop: activeTab === 'grid' ? '1px solid var(--text-main)' : 'none', color: activeTab === 'grid' ? 'var(--text-main)' : 'var(--text-muted)', cursor: 'pointer' }}
+        >
           <Grid size={24} />
         </div>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0.5rem', color: 'var(--text-muted)' }}>
+        <div 
+          onClick={() => setActiveTab('video')}
+          style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0.5rem', borderTop: activeTab === 'video' ? '1px solid var(--text-main)' : 'none', color: activeTab === 'video' ? 'var(--text-main)' : 'var(--text-muted)', cursor: 'pointer' }}
+        >
           <PlaySquare size={24} />
         </div>
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0.5rem', color: 'var(--text-muted)' }}>
@@ -126,7 +137,9 @@ export default function Profile() {
       {/* Posts Grid */}
       <div className="post-grid">
         {userPosts.map(post => (
-          post.photoUrl ? (
+          post.videoUrl ? (
+            <video key={post.id} src={post.videoUrl} className="post-grid-item" style={{ backgroundColor: 'black' }} />
+          ) : post.photoUrl ? (
             <img key={post.id} src={post.photoUrl} alt="Post" className="post-grid-item" />
           ) : (
             <div key={post.id} className="post-grid-item" style={{ backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', textAlign: 'center' }}>

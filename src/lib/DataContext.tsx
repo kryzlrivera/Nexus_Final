@@ -22,6 +22,7 @@ export interface Post {
   authorUsername: string;
   content: string;
   photoUrl?: string;
+  videoUrl?: string;
   timestamp: string;
   likes: string[]; // array of usernames who liked it
   comments: Comment[];
@@ -36,6 +37,14 @@ export interface Story {
   timestamp: string;
 }
 
+export interface Message {
+  id: string;
+  senderUsername: string;
+  receiverUsername: string;
+  content: string;
+  timestamp: string;
+}
+
 interface DataContextType {
   currentUser: User | null;
   users: User[];
@@ -44,7 +53,7 @@ interface DataContextType {
   login: (username: string) => Promise<boolean>;
   register: (username: string, name: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  createPost: (content: string, photoUrl?: string) => Promise<void>;
+  createPost: (content: string, photoUrl?: string, videoUrl?: string) => Promise<void>;
   toggleLike: (postId: string) => Promise<void>;
   addFriend: (username: string) => Promise<void>;
   removeFriend: (username: string) => Promise<void>;
@@ -53,6 +62,8 @@ interface DataContextType {
   createStory: (type: 'text' | 'photo', content?: string, photoUrl?: string) => Promise<void>;
   addComment: (postId: string, content: string) => Promise<void>;
   toggleSavePost: (postId: string) => Promise<void>;
+  getMessages: (username: string) => Promise<Message[]>;
+  sendMessage: (username: string, content: string) => Promise<void>;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api';
@@ -73,6 +84,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('nexus_token');
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
@@ -114,7 +126,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       setPosts(postsData);
       setStories(storiesData);
-      setUsers(usersData.map((user: any) => ({ ...user, friends: user.friends ?? [], savedPosts: user.savedPosts ?? [] })));
+      
+      const mappedUsers = usersData.map((user: any) => ({ ...user, friends: user.friends ?? [], savedPosts: user.savedPosts ?? [] }));
+      setUsers(mappedUsers);
+
+      setCurrentUser((prevUser) => {
+        if (!prevUser) return null;
+        const updatedSelf = mappedUsers.find((u: any) => u.username === prevUser.username);
+        return updatedSelf ? { ...prevUser, ...updatedSelf } : prevUser;
+      });
+
     } catch (error) {
       console.warn('Unable to load backend data:', error);
     }
@@ -166,11 +187,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setStories([]);
   };
 
-  const createPost = async (content: string, photoUrl?: string) => {
+  const createPost = async (content: string, photoUrl?: string, videoUrl?: string) => {
     if (!currentUser) return;
     await apiRequest('/posts', {
       method: 'POST',
-      body: JSON.stringify({ content, photo_url: photoUrl }),
+      body: JSON.stringify({ content, photo_url: photoUrl, video_url: videoUrl }),
     });
     await fetchData();
   };
@@ -243,6 +264,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const getMessages = async (username: string) => {
+    if (!currentUser) return [];
+    return await apiRequest(`/messages/${username}`);
+  };
+
+  const sendMessage = async (username: string, content: string) => {
+    if (!currentUser) return;
+    await apiRequest(`/messages/${username}`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  };
+
   return (
     <DataContext.Provider value={{
       currentUser, users, posts, stories,
@@ -250,7 +284,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       createPost, toggleLike,
       addFriend, removeFriend,
       getUserByUsername, updateProfile, createStory,
-      addComment, toggleSavePost
+      addComment, toggleSavePost, getMessages, sendMessage
     }}>
       {children}
     </DataContext.Provider>
