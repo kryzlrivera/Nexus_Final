@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Home, User, PlusCircle, MessageCircle } from 'lucide-react';
+import { LogOut, Home, User, PlusCircle, MessageCircle, LayoutDashboard } from 'lucide-react';
 import { useData } from '../lib/DataContext';
 
 function Navbar() {
@@ -38,6 +38,12 @@ function Navbar() {
             <Link to="/messages" className="btn btn-ghost" title="Messages">
               <MessageCircle size={24} />
             </Link>
+
+            {currentUser.isAdmin && (
+              <Link to="/admin" className="btn btn-ghost" title="Admin Dashboard">
+                <LayoutDashboard size={24} />
+              </Link>
+            )}
 
             <Link to={`/profile/${currentUser.username}`} className="btn btn-ghost" title="Profile">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

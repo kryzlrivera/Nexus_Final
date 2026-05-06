@@ -30,7 +30,7 @@ export default function EditProfileModal({ isOpen, onClose }: EditProfileModalPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile(name, bio, avatarUrl);
+    updateProfile({ name, bio, avatar: avatarUrl });
     onClose();
   };
 

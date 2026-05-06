@@ -16,6 +16,7 @@ class User extends Authenticatable
         'avatar',
         'bio',
         'api_token',
+        'is_admin',
     ];
 
     protected $hidden = [

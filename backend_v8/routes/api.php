@@ -28,9 +28,19 @@ Route::post('profiles/{username}/follow', [ProfileController::class, 'toggleFoll
 Route::get('messages/{username}', [MessageController::class, 'index']);
 Route::post('messages/{username}', [MessageController::class, 'store']);
 
+// Admin Routes
+Route::middleware([\App\Http\Middleware\IsAdmin::class])->prefix('admin')->group(function () {
+    Route::get('/stats', [\App\Http\Controllers\AdminController::class, 'getDashboardStats']);
+    Route::get('/users', [\App\Http\Controllers\AdminController::class, 'getAllUsers']);
+    Route::delete('/users/{id}', [\App\Http\Controllers\AdminController::class, 'deleteUser']);
+    Route::get('/posts', [\App\Http\Controllers\AdminController::class, 'getAllPosts']);
+    Route::delete('/posts/{id}', [\App\Http\Controllers\AdminController::class, 'deletePost']);
+});
+
 Route::options('{any}', function () {
     return response('', 200)
         ->header('Access-Control-Allow-Origin', '*')
         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 })->where('any', '.*');
+

@@ -6,6 +6,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
+import AdminLayout from './components/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminPosts from './pages/admin/AdminPosts';
 import './index.css';
 
 // Protected Route Component
@@ -17,10 +21,34 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Admin Protected Route Component
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useData();
+  if (!currentUser || !currentUser.isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
 // App Content with Routes
 function AppContent() {
   return (
     <Routes>
+      {/* Admin Routes (Standalone Layout) */}
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="posts" element={<AdminPosts />} />
+      </Route>
+
+      {/* Main Application Routes (Shared Layout) */}
       <Route element={<Layout />}>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />

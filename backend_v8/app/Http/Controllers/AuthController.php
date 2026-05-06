@@ -74,6 +74,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'avatar' => $user->avatar,
                 'bio' => $user->bio,
+                'isAdmin' => (bool) $user->is_admin,
                 'friends' => $user->friends->pluck('username'),
                 'savedPosts' => [],
             ];

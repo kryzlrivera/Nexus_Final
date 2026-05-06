@@ -8,6 +8,7 @@ export interface User {
   bio: string;
   friends: string[]; // array of usernames
   savedPosts: string[]; // array of post IDs
+  isAdmin?: boolean;
 }
 
 export interface Comment {
@@ -58,12 +59,16 @@ interface DataContextType {
   addFriend: (username: string) => Promise<void>;
   removeFriend: (username: string) => Promise<void>;
   getUserByUsername: (username: string) => User | undefined;
-  updateProfile: (name: string, bio: string, avatar: string) => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
   createStory: (type: 'text' | 'photo', content?: string, photoUrl?: string) => Promise<void>;
   addComment: (postId: string, content: string) => Promise<void>;
   toggleSavePost: (postId: string) => Promise<void>;
   getMessages: (username: string) => Promise<Message[]>;
   sendMessage: (username: string, content: string) => Promise<void>;
+  fetchAdminStats: () => Promise<any>;
+  fetchAllUsersAdmin: () => Promise<User[]>;
+  adminDeleteUser: (userId: string) => Promise<void>;
+  adminDeletePost: (postId: string) => Promise<void>;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api';
@@ -127,7 +132,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setPosts(postsData);
       setStories(storiesData);
       
-      const mappedUsers = usersData.map((user: any) => ({ ...user, friends: user.friends ?? [], savedPosts: user.savedPosts ?? [] }));
+      const mappedUsers = usersData.map((user: any) => ({ ...user, isAdmin: user.isAdmin || user.is_admin || false, friends: user.friends ?? [], savedPosts: user.savedPosts ?? [] }));
       setUsers(mappedUsers);
 
       setCurrentUser((prevUser) => {
@@ -149,7 +154,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       });
 
       localStorage.setItem('nexus_token', result.token);
-      setCurrentUser({ ...result.user, friends: result.user.friends ?? [], savedPosts: result.user.savedPosts ?? [] });
+      setCurrentUser({ ...result.user, isAdmin: result.user.isAdmin || result.user.is_admin || false, friends: result.user.friends ?? [], savedPosts: result.user.savedPosts ?? [] });
       await fetchData();
       return true;
     } catch {
@@ -165,7 +170,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       });
 
       localStorage.setItem('nexus_token', result.token);
-      setCurrentUser({ ...result.user, friends: result.user.friends ?? [], savedPosts: result.user.savedPosts ?? [] });
+      setCurrentUser({ ...result.user, isAdmin: result.user.isAdmin || result.user.is_admin || false, friends: result.user.friends ?? [], savedPosts: result.user.savedPosts ?? [] });
       await fetchData();
       return true;
     } catch {
@@ -218,12 +223,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return users.find(u => u.username === username);
   };
 
-  const updateProfile = async (name: string, bio: string, avatar: string) => {
+  const updateProfile = async (data: Partial<User>) => {
     if (!currentUser) return;
 
     const updatedUser = await apiRequest(`/profiles/${currentUser.username}`, {
       method: 'PUT',
-      body: JSON.stringify({ name, bio, avatar }),
+      body: JSON.stringify(data),
     });
 
     setCurrentUser(prev => prev ? { ...prev, ...updatedUser } : null);
@@ -277,6 +282,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const fetchAdminStats = async () => {
+    return await apiRequest('/admin/stats');
+  };
+
+  const fetchAllUsersAdmin = async () => {
+    return await apiRequest('/admin/users');
+  };
+
+  const adminDeleteUser = async (userId: string) => {
+    await apiRequest(`/admin/users/${userId}`, { method: 'DELETE' });
+  };
+
+  const adminDeletePost = async (postId: string) => {
+    await apiRequest(`/admin/posts/${postId}`, { method: 'DELETE' });
+    await fetchData();
+  };
+
   return (
     <DataContext.Provider value={{
       currentUser, users, posts, stories,
@@ -284,7 +306,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       createPost, toggleLike,
       addFriend, removeFriend,
       getUserByUsername, updateProfile, createStory,
-      addComment, toggleSavePost, getMessages, sendMessage
+      addComment, toggleSavePost, getMessages, sendMessage,
+      fetchAdminStats, fetchAllUsersAdmin, adminDeleteUser, adminDeletePost
     }}>
       {children}
     </DataContext.Provider>
